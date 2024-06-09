@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:pdfx/pdfx.dart';
 
 class PDFPageView extends StatefulWidget {
-  final int pageNumber;
   final String filePath;
+  final int pageNumber;
 
-  const PDFPageView({super.key, required this.pageNumber, required this.filePath});
+  const PDFPageView({super.key, required this.filePath, required this.pageNumber});
 
   @override
   State<PDFPageView> createState() => _PDFPageViewState();
@@ -27,7 +27,7 @@ class _PDFPageViewState extends State<PDFPageView> {
     try {
       _pdfController = PdfController(
         document: PdfDocument.openFile(widget.filePath),
-        initialPage: widget.pageNumber - 1, // PdfViewController uses 0-based indexing for pages
+        initialPage: widget.pageNumber, // Display the first page (0-based index)
       );
 
       setState(() {
@@ -49,7 +49,15 @@ class _PDFPageViewState extends State<PDFPageView> {
         children: <Widget>[
           if (_isReady)
             PdfView(
+              physics: const NeverScrollableScrollPhysics(),
               controller: _pdfController,
+              onPageChanged: (page) {
+                // Ensure it stays on the first page
+                if (page != 0) {
+                  _pdfController.jumpToPage(0);
+                }
+              },
+              pageSnapping: false,
             )
           else if (_errorMessage.isNotEmpty)
             Center(child: Text(_errorMessage))
